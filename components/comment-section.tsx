@@ -1,0 +1,133 @@
+'use client'
+
+import { useState } from 'react'
+import { useAuth } from '@/lib/auth-context'
+import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { Separator } from '@/components/ui/separator'
+import Link from 'next/link'
+import type { Comment } from '@/types'
+import { MessageSquare } from 'lucide-react'
+import { EmptyState } from '@/components/empty-state'
+
+const SHORT_MONTHS = [
+  'jan', 'fev', 'mar', 'abr', 'mai', 'jun',
+  'jul', 'ago', 'set', 'out', 'nov', 'dez',
+]
+
+function formatShortDate(dateStr: string) {
+  const d = new Date(dateStr)
+  return `${d.getUTCDate()} ${SHORT_MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`
+}
+
+interface CommentSectionProps {
+  comments: Comment[]
+  postId: string
+}
+
+export function CommentSection({ comments: initialComments, postId }: CommentSectionProps) {
+  const { user } = useAuth()
+  const [comments, setComments] = useState(initialComments)
+  const [body, setBody] = useState('')
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!user || !body.trim()) return
+
+    const newComment: Comment = {
+      id: String(Date.now()),
+      postId,
+      author: user,
+      body: body.trim(),
+      createdAt: new Date().toISOString(),
+    }
+    setComments([...comments, newComment])
+    setBody('')
+  }
+
+  return (
+    <section className="space-y-6">
+      <div className="flex items-center gap-2">
+        <MessageSquare className="size-5 text-muted-foreground" />
+        <h2 className="text-lg font-semibold text-foreground">
+          {comments.length} {comments.length === 1 ? 'comentario' : 'comentarios'}
+        </h2>
+      </div>
+
+      <Separator />
+
+      {!user ? (
+        <div className="rounded-lg border bg-card p-6 text-center">
+          <p className="mb-4 text-sm text-muted-foreground">
+            Faca login para comentar
+          </p>
+          <div className="flex justify-center gap-3">
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/login">Login com GitHub</Link>
+            </Button>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/login">Login com email</Link>
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="flex gap-3">
+          <Avatar className="mt-1 size-8 shrink-0">
+            <AvatarImage src={user.avatarUrl} alt={user.name} />
+            <AvatarFallback>{user.name[0]}</AvatarFallback>
+          </Avatar>
+          <div className="min-w-0 flex-1 space-y-3">
+            <Textarea
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              placeholder="Escreva um comentario..."
+              className="min-h-20 resize-none"
+            />
+            <div className="flex justify-end">
+              <Button type="submit" size="sm" disabled={!body.trim()}>
+                Comentar
+              </Button>
+            </div>
+          </div>
+        </form>
+      )}
+
+      <div className="space-y-4">
+        {comments.length === 0 && (
+          <EmptyState
+            title="Nenhum comentario ainda."
+            description="Seja o primeiro a comentar neste post."
+            icon={<MessageSquare className="size-6" />}
+          />
+        )}
+        {comments.map((comment, i) => (
+          <div key={comment.id}>
+            <div className="flex gap-3">
+              <Avatar className="mt-1 size-8 shrink-0 border">
+                <AvatarImage src={comment.author.avatarUrl} alt={comment.author.name} />
+                <AvatarFallback>{comment.author.name[0]}</AvatarFallback>
+              </Avatar>
+              <div className="min-w-0 flex-1">
+                <div className="rounded-lg border bg-card p-4">
+                  <div className="mb-2 flex items-center gap-2">
+                    <span className="text-sm font-medium text-foreground">
+                      {comment.author.name}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {formatShortDate(comment.createdAt)}
+                    </span>
+                  </div>
+                  <p className="text-sm leading-relaxed text-foreground">
+                    {comment.body}
+                  </p>
+                </div>
+              </div>
+            </div>
+            {i < comments.length - 1 && <Separator className="ml-11 mt-4" />}
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
