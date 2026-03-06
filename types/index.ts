@@ -13,11 +13,10 @@ export interface Post {
 
 export interface User {
   id: string
-  name: string
+  name: string | null
   username?: string
-  email: string
-  avatarUrl: string
-  provider: 'local' | 'github'
+  email: string | null
+  image?: string | null
   role: 'admin' | 'user'
 }
 

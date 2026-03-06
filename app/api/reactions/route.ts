@@ -1,15 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { auth } from '@/auth'
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json()
-    const { postId, userId, type } = body
+    const session = await auth()
 
-    if (!postId || !userId || !type) {
+    if (!session?.user?.email) {
       return NextResponse.json(
-        { error: 'postId, userId and type are required' },
+        { error: 'Não autenticado.' },
+        { status: 401 }
+      )
+    }
+
+    const body = await req.json()
+    const { postId, type } = body
+
+    if (!postId || !type) {
+      return NextResponse.json(
+        { error: 'postId e type são obrigatórios.' },
         { status: 400 }
+      )
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+    })
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Usuário não encontrado.' },
+        { status: 404 }
       )
     }
 
@@ -17,7 +38,7 @@ export async function POST(req: NextRequest) {
       where: {
         postId_userId_type: {
           postId,
-          userId,
+          userId: user.id,
           type,
         },
       },
@@ -43,7 +64,7 @@ export async function POST(req: NextRequest) {
     await prisma.reaction.create({
       data: {
         postId,
-        userId,
+        userId: user.id,
         type,
       },
     })
@@ -61,9 +82,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error('POST /api/reactions error:', error)
     return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : 'Internal server error',
-      },
+      { error: 'Erro interno do servidor.' },
       { status: 500 }
     )
   }

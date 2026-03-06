@@ -7,17 +7,19 @@ import { Footer } from '@/components/footer'
 import { AuthProvider } from '@/lib/auth-context'
 import { BackToTop } from '@/components/back-to-top'
 import { getAllPosts } from '@/lib/api'
+import { AuthSessionProvider } from '@/components/session-provider'
 import './globals.css'
 
-const _inter = Inter({ subsets: ['latin'] })
-const _jetbrainsMono = JetBrains_Mono({ subsets: ['latin'] })
+const inter = Inter({ subsets: ['latin'] })
+const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: {
     default: 'commit.log - Developer Blog',
     template: '%s | commit.log',
   },
-  description: 'A personal developer blog focused on web development, TypeScript, React, and modern software engineering.',
+  description:
+    'A personal developer blog focused on web development, TypeScript, React, and modern software engineering.',
 }
 
 export const viewport: Viewport = {
@@ -36,15 +38,17 @@ export default async function RootLayout({
 
   return (
     <html lang="pt-BR" suppressHydrationWarning>
-      <body className="font-sans antialiased">
-        <AuthProvider>
-          <div className="flex min-h-screen flex-col">
-            <NavbarWrapper posts={posts} />
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </div>
-          <BackToTop />
-        </AuthProvider>
+      <body className={`${inter.className} ${jetbrainsMono.variable} antialiased`}>
+        <AuthSessionProvider>
+          <AuthProvider>
+            <div className="flex min-h-screen flex-col">
+              <NavbarWrapper posts={posts} />
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </div>
+            <BackToTop />
+          </AuthProvider>
+        </AuthSessionProvider>
         <Analytics />
       </body>
     </html>

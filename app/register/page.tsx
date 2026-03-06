@@ -11,21 +11,38 @@ import Link from 'next/link'
 export default function RegisterPage() {
   const { register } = useAuth()
   const router = useRouter()
+
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+
     if (password.length < 6) {
       setError('A senha precisa ter pelo menos 6 caracteres.')
       return
     }
-    const success = await register(name, email, password)
-    if (success) {
+
+    try {
+      setIsSubmitting(true)
+
+      const success = await register(name, email, password)
+
+      if (!success) {
+        setError('Não foi possível criar a conta. Verifique se o email já está em uso.')
+        return
+      }
+
       router.push('/')
+    } catch (err) {
+      console.error(err)
+      setError('Não foi possível criar a conta.')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -49,8 +66,10 @@ export default function RegisterPage() {
               onChange={(e) => setName(e.target.value)}
               placeholder="Seu nome"
               required
+              disabled={isSubmitting}
             />
           </div>
+
           <div className="space-y-2">
             <label htmlFor="email" className="text-sm font-medium text-foreground">
               Email
@@ -62,8 +81,10 @@ export default function RegisterPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="seu@email.com"
               required
+              disabled={isSubmitting}
             />
           </div>
+
           <div className="space-y-2">
             <label htmlFor="password" className="text-sm font-medium text-foreground">
               Senha
@@ -75,11 +96,14 @@ export default function RegisterPage() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Minimo 6 caracteres"
               required
+              disabled={isSubmitting}
             />
           </div>
+
           {error && <p className="text-sm text-destructive">{error}</p>}
-          <Button type="submit" className="w-full">
-            Criar conta
+
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? 'Criando conta...' : 'Criar conta'}
           </Button>
         </form>
       </div>

@@ -13,6 +13,8 @@ async function main() {
   await prisma.reaction.deleteMany()
   await prisma.tag.deleteMany()
   await prisma.post.deleteMany()
+  await prisma.account.deleteMany()
+  await prisma.session.deleteMany()
   await prisma.user.deleteMany()
 
   for (const user of mockUsers) {
@@ -22,8 +24,8 @@ async function main() {
         name: user.name,
         username: user.username ?? null,
         email: user.email,
-        avatarUrl: user.avatarUrl ?? null,
-        provider: user.provider,
+        image: user.avatarUrl ?? null,
+        emailVerified: null,
         role: user.role,
       },
     })
@@ -86,13 +88,25 @@ async function main() {
   for (const reaction of mockReactions) {
     const userId = '2'
 
-    await prisma.reaction.create({
-        data: {
-        postId: reaction.postId,
-        userId,
-        type: reaction.type,
+    const exists = await prisma.reaction.findUnique({
+      where: {
+        postId_userId_type: {
+          postId: reaction.postId,
+          userId,
+          type: reaction.type,
         },
+      },
     })
+
+    if (!exists) {
+      await prisma.reaction.create({
+        data: {
+          postId: reaction.postId,
+          userId,
+          type: reaction.type,
+        },
+      })
+    }
   }
 
   console.log('Seed completed.')

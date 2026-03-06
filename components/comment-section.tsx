@@ -45,7 +45,6 @@ export function CommentSection({ comments: initialComments, postId }: CommentSec
       },
       body: JSON.stringify({
         postId,
-        userId: user.id,
         content: body.trim(),
       }),
     })

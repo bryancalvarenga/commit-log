@@ -39,7 +39,6 @@ export function ReactionBar({ reactions: initialReactions, postId }: ReactionBar
         },
         body: JSON.stringify({
           postId,
-          userId: user.id,
           type,
         }),
       })

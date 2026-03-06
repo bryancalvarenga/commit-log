@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { signIn } from 'next-auth/react'
 import { useAuth } from '@/lib/auth-context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -29,11 +30,12 @@ export default function LoginPage() {
       const success = await login(email, password)
 
       if (!success) {
-        setError('Email não encontrado. Tente: admin@commitlog.dev')
+        setError('Email não encontrado.')
         return
       }
 
       router.push('/')
+      router.refresh()
     } catch (err) {
       console.error(err)
       setError('Não foi possível fazer login.')
@@ -43,23 +45,16 @@ export default function LoginPage() {
   }
 
   const handleGithubLogin = async () => {
-    setError('')
-
     try {
+      setError('')
       setIsGithubLoading(true)
 
-      const success = await login('admin@commitlog.dev', '')
-
-      if (!success) {
-        setError('Não foi possível entrar com GitHub.')
-        return
-      }
-
-      router.push('/')
+      await signIn('github', {
+        callbackUrl: '/',
+      })
     } catch (err) {
       console.error(err)
       setError('Não foi possível entrar com GitHub.')
-    } finally {
       setIsGithubLoading(false)
     }
   }
