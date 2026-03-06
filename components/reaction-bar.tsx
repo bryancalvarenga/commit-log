@@ -77,7 +77,7 @@ export function ReactionBar({ reactions: initialReactions, postId }: ReactionBar
       })
     } catch (err) {
       console.error(err)
-      setError('Nao foi possivel registrar a reacao.')
+      setError('Não foi possível registrar a reação.')
     } finally {
       setLoadingType(null)
     }

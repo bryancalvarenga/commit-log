@@ -47,7 +47,23 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    return NextResponse.json(comment, { status: 201 })
+    return NextResponse.json(
+      {
+        id: comment.id,
+        postId: comment.postId,
+        body: comment.body,
+        createdAt: comment.createdAt,
+        author: {
+          id: comment.author.id,
+          name: comment.author.name,
+          username: comment.author.username,
+          email: comment.author.email,
+          image: comment.author.image,
+          role: comment.author.role,
+        },
+      },
+      { status: 201 }
+    )
   } catch (error) {
     console.error('POST /api/comments error:', error)
     return NextResponse.json(

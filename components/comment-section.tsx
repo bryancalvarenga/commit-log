@@ -36,28 +36,38 @@ export function CommentSection({ comments: initialComments, postId }: CommentSec
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!user || !body.trim()) return
+    if (!user || !body.trim() || isSubmitting) return
 
-    const res = await fetch('/api/comments', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        postId,
-        content: body.trim(),
-      }),
-    })
+    try {
+      setIsSubmitting(true)
+      setError(null)
 
-    if (!res.ok) {
-      console.error('Erro ao criar comentário')
-      return
+      const res = await fetch('/api/comments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          postId,
+          content: body.trim(),
+        }),
+      })
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null)
+        throw new Error(data?.error || 'Erro ao criar comentário')
+      }
+
+      const newComment = await res.json()
+
+      setComments((prev) => [...prev, newComment])
+      setBody('')
+    } catch (err) {
+      console.error(err)
+      setError('Não foi possível enviar o comentário.')
+    } finally {
+      setIsSubmitting(false)
     }
-
-    const newComment = await res.json()
-
-    setComments([...comments, newComment])
-    setBody('')
   }
 
   return (
@@ -65,7 +75,7 @@ export function CommentSection({ comments: initialComments, postId }: CommentSec
       <div className="flex items-center gap-2">
         <MessageSquare className="size-5 text-muted-foreground" />
         <h2 className="text-lg font-semibold text-foreground">
-          {comments.length} {comments.length === 1 ? 'comentario' : 'comentarios'}
+          {comments.length} {comments.length === 1 ? 'comentário' : 'comentários'}
         </h2>
       </div>
 
@@ -74,7 +84,7 @@ export function CommentSection({ comments: initialComments, postId }: CommentSec
       {!user ? (
         <div className="rounded-lg border bg-card p-6 text-center">
           <p className="mb-4 text-sm text-muted-foreground">
-            Faca login para comentar
+            Faça login para comentar
           </p>
           <div className="flex justify-center gap-3">
             <Button variant="outline" size="sm" asChild>
@@ -88,15 +98,15 @@ export function CommentSection({ comments: initialComments, postId }: CommentSec
       ) : (
         <form onSubmit={handleSubmit} className="flex gap-3">
           <Avatar className="mt-1 size-8 shrink-0">
-            <AvatarImage src={user.avatarUrl} alt={user.name} />
-            <AvatarFallback>{user.name[0]}</AvatarFallback>
+            <AvatarImage src={user.image ?? undefined} alt={user.name ?? 'Usuário'} />
+            <AvatarFallback>{user.name?.[0] ?? 'U'}</AvatarFallback>
           </Avatar>
 
           <div className="min-w-0 flex-1 space-y-3">
             <Textarea
               value={body}
               onChange={(e) => setBody(e.target.value)}
-              placeholder="Escreva um comentario..."
+              placeholder="Escreva um comentário..."
               className="min-h-20 resize-none"
               disabled={isSubmitting}
             />
@@ -119,7 +129,7 @@ export function CommentSection({ comments: initialComments, postId }: CommentSec
       <div className="space-y-4">
         {comments.length === 0 && (
           <EmptyState
-            title="Nenhum comentario ainda."
+            title="Nenhum comentário ainda."
             description="Seja o primeiro a comentar neste post."
             icon={<MessageSquare className="size-6" />}
           />
@@ -129,15 +139,18 @@ export function CommentSection({ comments: initialComments, postId }: CommentSec
           <div key={comment.id}>
             <div className="flex gap-3">
               <Avatar className="mt-1 size-8 shrink-0 border">
-                <AvatarImage src={comment.author.avatarUrl} alt={comment.author.name} />
-                <AvatarFallback>{comment.author.name[0]}</AvatarFallback>
+                <AvatarImage
+                  src={comment.author.image ?? undefined}
+                  alt={comment.author.name ?? 'Usuário'}
+                />
+                <AvatarFallback>{comment.author.name?.[0] ?? 'U'}</AvatarFallback>
               </Avatar>
 
               <div className="min-w-0 flex-1">
                 <div className="rounded-lg border bg-card p-4">
                   <div className="mb-2 flex items-center gap-2">
                     <span className="text-sm font-medium text-foreground">
-                      {comment.author.name}
+                      {comment.author.name ?? 'Usuário'}
                     </span>
                     <span className="text-xs text-muted-foreground">
                       {formatShortDate(comment.createdAt)}

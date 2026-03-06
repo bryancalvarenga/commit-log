@@ -19,11 +19,10 @@ function mapPost(post: any): Post {
 function mapUser(user: any): User {
   return {
     id: user.id,
-    name: user.name,
+    name: user.name ?? null,
     username: user.username ?? undefined,
-    email: user.email,
-    avatarUrl: user.avatarUrl ?? undefined,
-    provider: user.provider,
+    email: user.email ?? null,
+    image: user.image ?? null,
     role: user.role,
   }
 }
