@@ -1,7 +1,51 @@
-import type { Post, User, Comment, Reaction, ReactionType, Tag } from '@/types'
-import { mockPosts, mockComments, mockReactions, mockTags, mockUsers } from './mock-data'
+import type { Comment, Post, Reaction, ReactionType, Tag, User } from '@/types'
+import { prisma } from '@/lib/prisma'
 
-// --- Posts ---
+function mapPost(post: any): Post {
+  return {
+    id: post.id,
+    slug: post.slug,
+    title: post.title,
+    excerpt: post.excerpt,
+    contentMd: post.contentMd,
+    publishedAt: post.publishedAt.toISOString().slice(0, 10),
+    readingTime: post.readingTime,
+    tags: post.tags.map((pt: any) => pt.tag.slug),
+    category: post.category ?? undefined,
+    coverImage: post.coverImage ?? undefined,
+  }
+}
+
+function mapUser(user: any): User {
+  return {
+    id: user.id,
+    name: user.name,
+    username: user.username ?? undefined,
+    email: user.email,
+    avatarUrl: user.avatarUrl ?? undefined,
+    provider: user.provider,
+    role: user.role,
+  }
+}
+
+function mapComment(comment: any): Comment {
+  return {
+    id: comment.id,
+    postId: comment.postId,
+    body: comment.body,
+    createdAt: comment.createdAt.toISOString(),
+    author: mapUser(comment.author),
+  }
+}
+
+function mapReaction(reaction: any): Reaction {
+  return {
+    postId: reaction.postId,
+    type: reaction.type,
+    count: reaction.count,
+    viewerHasReacted: false,
+  }
+}
 
 export async function getPosts(params?: {
   page?: number
@@ -9,137 +53,243 @@ export async function getPosts(params?: {
   tag?: string
   search?: string
 }): Promise<{ posts: Post[]; total: number }> {
-  let filtered = [...mockPosts]
-  if (params?.tag) {
-    filtered = filtered.filter((p) => p.tags.includes(params.tag!))
-  }
-  if (params?.search) {
-    const q = params.search.toLowerCase()
-    filtered = filtered.filter(
-      (p) =>
-        p.title.toLowerCase().includes(q) ||
-        p.excerpt.toLowerCase().includes(q) ||
-        p.tags.some((t) => t.toLowerCase().includes(q))
-    )
-  }
   const page = params?.page ?? 1
   const limit = params?.limit ?? 6
-  const start = (page - 1) * limit
-  return {
-    posts: filtered.slice(start, start + limit),
-    total: filtered.length,
+  const skip = (page - 1) * limit
+
+  const where: any = {}
+
+  if (params?.search) {
+    where.OR = [
+      { title: { contains: params.search, mode: 'insensitive' } },
+      { excerpt: { contains: params.search, mode: 'insensitive' } },
+      {
+        tags: {
+          some: {
+            tag: {
+              slug: { contains: params.search, mode: 'insensitive' },
+            },
+          },
+        },
+      },
+    ]
   }
-}
 
-export async function getPostBySlug(slug: string): Promise<Post | null> {
-  return mockPosts.find((p) => p.slug === slug) ?? null
-}
+  if (params?.tag) {
+    where.tags = {
+      some: {
+        tag: {
+          slug: params.tag,
+        },
+      },
+    }
+  }
 
-export async function searchPosts(query: string): Promise<Post[]> {
-  const q = query.toLowerCase()
-  return mockPosts.filter(
-    (p) =>
-      p.title.toLowerCase().includes(q) ||
-      p.excerpt.toLowerCase().includes(q) ||
-      p.tags.some((t) => t.toLowerCase().includes(q))
-  )
+  const [posts, total] = await Promise.all([
+    prisma.post.findMany({
+      where,
+      include: {
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
+      orderBy: {
+        publishedAt: 'desc',
+      },
+      skip,
+      take: limit,
+    }),
+    prisma.post.count({ where }),
+  ])
+
+  return {
+    posts: posts.map(mapPost),
+    total,
+  }
 }
 
 export async function getAllPosts(): Promise<Post[]> {
-  return [...mockPosts]
+  const posts = await prisma.post.findMany({
+    include: {
+      tags: {
+        include: {
+          tag: true,
+        },
+      },
+    },
+    orderBy: {
+      publishedAt: 'desc',
+    },
+  })
+
+  return posts.map(mapPost)
 }
 
-// --- Tags ---
+export async function getPostBySlug(slug: string): Promise<Post | null> {
+  const post = await prisma.post.findUnique({
+    where: { slug },
+    include: {
+      tags: {
+        include: {
+          tag: true,
+        },
+      },
+    },
+  })
+
+  return post ? mapPost(post) : null
+}
+
+export async function searchPosts(query: string): Promise<Post[]> {
+  const { posts } = await getPosts({ search: query, limit: 50, page: 1 })
+  return posts
+}
 
 export async function getTags(): Promise<Tag[]> {
-  return [...mockTags]
+  const tags = await prisma.tag.findMany({
+    include: {
+      posts: true,
+    },
+    orderBy: {
+      name: 'asc',
+    },
+  })
+
+  return tags.map((tag) => ({
+    slug: tag.slug,
+    name: tag.name,
+    postCount: tag.posts.length,
+  }))
 }
 
 export async function getTagBySlug(slug: string): Promise<Tag | null> {
-  return mockTags.find((t) => t.slug === slug) ?? null
+  const tag = await prisma.tag.findUnique({
+    where: { slug },
+    include: {
+      posts: true,
+    },
+  })
+
+  if (!tag) return null
+
+  return {
+    slug: tag.slug,
+    name: tag.name,
+    postCount: tag.posts.length,
+  }
 }
 
-// --- Comments ---
-
 export async function getComments(postId: string): Promise<Comment[]> {
-  return mockComments.filter((c) => c.postId === postId)
+  const comments = await prisma.comment.findMany({
+    where: { postId },
+    include: {
+      author: true,
+    },
+    orderBy: {
+      createdAt: 'asc',
+    },
+  })
+
+  return comments.map(mapComment)
 }
 
 export async function createComment(postId: string, body: string, author: User): Promise<Comment> {
-  const comment: Comment = {
-    id: String(Date.now()),
-    postId,
-    author,
-    body,
-    createdAt: new Date().toISOString(),
-  }
-  mockComments.push(comment)
-  return comment
+  const comment = await prisma.comment.create({
+    data: {
+      id: String(Date.now()),
+      postId,
+      body,
+      userId: author.id,
+      createdAt: new Date(),
+    },
+    include: {
+      author: true,
+    },
+  })
+
+  return mapComment(comment)
 }
 
-// --- Reactions ---
-
 export async function getReactions(postId: string): Promise<Reaction[]> {
-  return mockReactions.filter((r) => r.postId === postId)
+  const grouped = await prisma.reaction.groupBy({
+    by: ['type'],
+    where: { postId },
+    _count: {
+      type: true,
+    },
+  })
+
+  const reactionTypes: ReactionType[] = ['like', 'love', 'fire']
+
+  return reactionTypes.map((type) => {
+    const found = grouped.find((g) => g.type === type)
+
+    return {
+      postId,
+      type,
+      count: found?._count.type ?? 0,
+      viewerHasReacted: false,
+    }
+  })
 }
 
 export async function toggleReaction(
   postId: string,
+  userId: string,
   type: ReactionType
 ): Promise<Reaction> {
-  const reaction = mockReactions.find(
-    (r) => r.postId === postId && r.type === type
-  )
-  if (reaction) {
-    reaction.viewerHasReacted = !reaction.viewerHasReacted
-    reaction.count += reaction.viewerHasReacted ? 1 : -1
-    return reaction
+  const existing = await prisma.reaction.findUnique({
+    where: {
+      postId_userId_type: {
+        postId,
+        userId,
+        type,
+      },
+    },
+  })
+
+  if (existing) {
+    await prisma.reaction.delete({
+      where: { id: existing.id },
+    })
+
+    const count = await prisma.reaction.count({
+      where: { postId, type },
+    })
+
+    return {
+      postId,
+      type,
+      count,
+      viewerHasReacted: false,
+    }
   }
-  const newReaction: Reaction = {
+
+  await prisma.reaction.create({
+    data: {
+      postId,
+      userId,
+      type,
+    },
+  })
+
+  const count = await prisma.reaction.count({
+    where: { postId, type },
+  })
+
+  return {
     postId,
     type,
-    count: 1,
+    count,
     viewerHasReacted: true,
   }
-  mockReactions.push(newReaction)
-  return newReaction
 }
-
-// --- Auth ---
 
 let currentUser: User | null = null
 
-export async function login(email: string, _password: string): Promise<User | null> {
-  const user = mockUsers.find((u) => u.email === email)
-  if (user) {
-    currentUser = user
-    return user
-  }
-  return null
-}
 
-export async function register(
-  name: string,
-  email: string,
-  _password: string
-): Promise<User> {
-  const user: User = {
-    id: String(Date.now()),
-    name,
-    email,
-    avatarUrl: `https://api.dicebear.com/9.x/initials/svg?seed=${name.split(' ').map(n => n[0]).join('')}`,
-    provider: 'local',
-    role: 'user',
-  }
-  mockUsers.push(user)
-  currentUser = user
-  return user
-}
 
-export async function getMe(): Promise<User | null> {
-  return currentUser
-}
 
-export async function logout(): Promise<void> {
-  currentUser = null
-}
+

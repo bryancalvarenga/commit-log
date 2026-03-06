@@ -30,18 +30,33 @@ export function CommentSection({ comments: initialComments, postId }: CommentSec
   const { user } = useAuth()
   const [comments, setComments] = useState(initialComments)
   const [body, setBody] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
     if (!user || !body.trim()) return
 
-    const newComment: Comment = {
-      id: String(Date.now()),
-      postId,
-      author: user,
-      body: body.trim(),
-      createdAt: new Date().toISOString(),
+    const res = await fetch('/api/comments', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        postId,
+        userId: user.id,
+        content: body.trim(),
+      }),
+    })
+
+    if (!res.ok) {
+      console.error('Erro ao criar comentário')
+      return
     }
+
+    const newComment = await res.json()
+
     setComments([...comments, newComment])
     setBody('')
   }
@@ -77,16 +92,25 @@ export function CommentSection({ comments: initialComments, postId }: CommentSec
             <AvatarImage src={user.avatarUrl} alt={user.name} />
             <AvatarFallback>{user.name[0]}</AvatarFallback>
           </Avatar>
+
           <div className="min-w-0 flex-1 space-y-3">
             <Textarea
               value={body}
               onChange={(e) => setBody(e.target.value)}
               placeholder="Escreva um comentario..."
               className="min-h-20 resize-none"
+              disabled={isSubmitting}
             />
+
+            {error && (
+              <p className="text-sm text-red-500">
+                {error}
+              </p>
+            )}
+
             <div className="flex justify-end">
-              <Button type="submit" size="sm" disabled={!body.trim()}>
-                Comentar
+              <Button type="submit" size="sm" disabled={!body.trim() || isSubmitting}>
+                {isSubmitting ? 'Enviando...' : 'Comentar'}
               </Button>
             </div>
           </div>
@@ -101,6 +125,7 @@ export function CommentSection({ comments: initialComments, postId }: CommentSec
             icon={<MessageSquare className="size-6" />}
           />
         )}
+
         {comments.map((comment, i) => (
           <div key={comment.id}>
             <div className="flex gap-3">
@@ -108,6 +133,7 @@ export function CommentSection({ comments: initialComments, postId }: CommentSec
                 <AvatarImage src={comment.author.avatarUrl} alt={comment.author.name} />
                 <AvatarFallback>{comment.author.name[0]}</AvatarFallback>
               </Avatar>
+
               <div className="min-w-0 flex-1">
                 <div className="rounded-lg border bg-card p-4">
                   <div className="mb-2 flex items-center gap-2">
@@ -118,12 +144,14 @@ export function CommentSection({ comments: initialComments, postId }: CommentSec
                       {formatShortDate(comment.createdAt)}
                     </span>
                   </div>
+
                   <p className="text-sm leading-relaxed text-foreground">
                     {comment.body}
                   </p>
                 </div>
               </div>
             </div>
+
             {i < comments.length - 1 && <Separator className="ml-11 mt-4" />}
           </div>
         ))}
