@@ -8,7 +8,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
 import Link from 'next/link'
 import type { Comment } from '@/types'
-import { MessageSquare } from 'lucide-react'
+import { MessageSquare, Trash2 } from 'lucide-react'
 import { EmptyState } from '@/components/empty-state'
 
 const SHORT_MONTHS = [
@@ -31,7 +31,10 @@ export function CommentSection({ comments: initialComments, postId }: CommentSec
   const [comments, setComments] = useState(initialComments)
   const [body, setBody] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+
+  const isAdmin = !!user && user.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -67,6 +70,31 @@ export function CommentSection({ comments: initialComments, postId }: CommentSec
       setError('Não foi possível enviar o comentário.')
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const handleDelete = async (commentId: string) => {
+    if (!user || deletingId) return
+
+    try {
+      setDeletingId(commentId)
+      setError(null)
+
+      const res = await fetch(`/api/comments/delete/${commentId}`, {
+        method: 'POST',
+      })
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null)
+        throw new Error(data?.error || 'Erro ao excluir comentário')
+      }
+
+      setComments((prev) => prev.filter((comment) => comment.id !== commentId))
+    } catch (err) {
+      console.error(err)
+      setError('Não foi possível excluir o comentário.')
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -135,38 +163,57 @@ export function CommentSection({ comments: initialComments, postId }: CommentSec
           />
         )}
 
-        {comments.map((comment, i) => (
-          <div key={comment.id}>
-            <div className="flex gap-3">
-              <Avatar className="mt-1 size-8 shrink-0 border">
-                <AvatarImage
-                  src={comment.author.image ?? undefined}
-                  alt={comment.author.name ?? 'Usuário'}
-                />
-                <AvatarFallback>{comment.author.name?.[0] ?? 'U'}</AvatarFallback>
-              </Avatar>
+        {comments.map((comment, i) => {
+          const canDelete = !!user && (comment.author.id === user.id || isAdmin)
 
-              <div className="min-w-0 flex-1">
-                <div className="rounded-lg border bg-card p-4">
-                  <div className="mb-2 flex items-center gap-2">
-                    <span className="text-sm font-medium text-foreground">
-                      {comment.author.name ?? 'Usuário'}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {formatShortDate(comment.createdAt)}
-                    </span>
+          return (
+            <div key={comment.id}>
+              <div className="flex gap-3">
+                <Avatar className="mt-1 size-8 shrink-0 border">
+                  <AvatarImage
+                    src={comment.author.image ?? undefined}
+                    alt={comment.author.name ?? 'Usuário'}
+                  />
+                  <AvatarFallback>{comment.author.name?.[0] ?? 'U'}</AvatarFallback>
+                </Avatar>
+
+                <div className="min-w-0 flex-1">
+                  <div className="rounded-lg border bg-card p-4">
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-foreground">
+                          {comment.author.name ?? 'Usuário'}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {formatShortDate(comment.createdAt)}
+                        </span>
+                      </div>
+
+                      {canDelete && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 px-2 text-muted-foreground hover:text-destructive"
+                          onClick={() => handleDelete(comment.id)}
+                          disabled={deletingId === comment.id}
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      )}
+                    </div>
+
+                    <p className="text-sm leading-relaxed text-foreground">
+                      {comment.body}
+                    </p>
                   </div>
-
-                  <p className="text-sm leading-relaxed text-foreground">
-                    {comment.body}
-                  </p>
                 </div>
               </div>
-            </div>
 
-            {i < comments.length - 1 && <Separator className="ml-11 mt-4" />}
-          </div>
-        ))}
+              {i < comments.length - 1 && <Separator className="ml-11 mt-4" />}
+            </div>
+          )
+        })}
       </div>
     </section>
   )
