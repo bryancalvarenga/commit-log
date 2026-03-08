@@ -1,8 +1,8 @@
 'use client'
 
 import { useCallback, useRef } from 'react'
-import { Check, Copy, Link as LinkIcon } from 'lucide-react'
-import { useState } from 'react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 function slugify(text: string): string {
   return text
@@ -16,34 +16,33 @@ interface MarkdownRendererProps {
 }
 
 export function MarkdownRenderer({ content }: MarkdownRendererProps) {
-  const html = markdownToHtml(content)
   const containerRef = useRef<HTMLDivElement>(null)
 
   const handleClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement
 
-    // Handle copy code button clicks
     if (target.closest('[data-copy-code]')) {
       const btn = target.closest('[data-copy-code]') as HTMLElement
-      const pre = btn.closest('pre')
-      if (!pre) return
-      const code = pre.querySelector('code')?.textContent ?? ''
+      const wrapper = btn.closest('[data-code-wrapper]')
+      const code = wrapper?.querySelector('code')?.textContent ?? ''
+
       navigator.clipboard.writeText(code).then(() => {
-        btn.setAttribute('data-copied', 'true')
-        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`
+        btn.textContent = 'copiado'
+
         setTimeout(() => {
-          btn.removeAttribute('data-copied')
-          btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg>`
+          btn.textContent = 'copiar'
         }, 2000)
       })
+
       return
     }
 
-    // Handle heading anchor clicks
     if (target.closest('.heading-anchor')) {
       e.preventDefault()
+
       const anchor = target.closest('.heading-anchor') as HTMLAnchorElement
       const id = anchor.getAttribute('href')?.slice(1)
+
       if (id) {
         document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
         history.replaceState(null, '', `#${id}`)
@@ -54,82 +53,103 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
   return (
     <div
       ref={containerRef}
-      className="prose"
+      className="prose dark:prose-invert max-w-none prose-pre:p-0 prose-pre:bg-transparent prose-pre:border-0"
       onClick={handleClick}
-      dangerouslySetInnerHTML={{ __html: html }}
-    />
+    >
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        components={{
+          h2({ children }) {
+            const text = String(children)
+            const id = slugify(text)
+
+            return (
+              <h2 id={id}>
+                {children}
+                <a
+                  href={`#${id}`}
+                  className="heading-anchor ml-2 no-underline opacity-40 transition-opacity hover:opacity-100"
+                >
+                  #
+                </a>
+              </h2>
+            )
+          },
+
+          h3({ children }) {
+            const text = String(children)
+            const id = slugify(text)
+
+            return (
+              <h3 id={id}>
+                {children}
+                <a
+                  href={`#${id}`}
+                  className="heading-anchor ml-2 no-underline opacity-40 transition-opacity hover:opacity-100"
+                >
+                  #
+                </a>
+              </h3>
+            )
+          },
+
+          code({ className, children, ...props }) {
+            const text = String(children).replace(/\n$/, '')
+            const isBlock = className?.startsWith('language-')
+
+            if (!isBlock) {
+              return (
+                <code
+                  className="rounded bg-muted px-1.5 py-0.5 font-mono text-[0.9em]"
+                  {...props}
+                >
+                  {text}
+                </code>
+              )
+            }
+
+            const language = className.replace('language-', '')
+
+            return (
+              <div
+                data-code-wrapper
+                className="my-8 overflow-hidden rounded-xl bg-zinc-100 dark:bg-[#0d1117]"
+              >
+                <div className="flex items-center justify-between border-b border-zinc-200 px-4 py-2 dark:border-zinc-800">
+                  <div className="flex items-center gap-2">
+                    <span className="h-3 w-3 rounded-full bg-red-500" />
+                    <span className="h-3 w-3 rounded-full bg-yellow-500" />
+                    <span className="h-3 w-3 rounded-full bg-green-500" />
+
+                    <span className="ml-3 font-mono text-[11px] uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                      {language}
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    data-copy-code
+                    className="text-xs text-zinc-500 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+                  >
+                    copiar
+                  </button>
+                </div>
+
+                <pre className="overflow-x-auto p-4">
+                  <code
+                    className="block whitespace-pre font-mono text-[13px] leading-6 text-zinc-800 dark:text-zinc-200"
+                    {...props}
+                  >
+                    {text}
+                  </code>
+                </pre>
+              </div>
+            )
+          },
+        }}
+      >
+        {content}
+      </ReactMarkdown>
+    </div>
   )
-}
-
-function markdownToHtml(md: string): string {
-  let html = md
-
-  // Code blocks (must be before inline code)
-  html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, (_match, lang, code) => {
-    const escapedCode = escapeHtml(code.trim())
-    const langLabel = lang ? `<span style="position:absolute;top:0.5rem;left:0.75rem;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted-foreground);font-family:var(--font-mono);user-select:none;">${lang}</span>` : ''
-    return `<pre style="position:relative;padding-top:${lang ? '2.25rem' : '1rem'};">${langLabel}<button data-copy-code style="position:absolute;top:0.5rem;right:0.5rem;padding:0.375rem;border-radius:0.25rem;border:1px solid var(--border);background:var(--background);color:var(--muted-foreground);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:color 0.15s ease,border-color 0.15s ease;" onmouseover="this.style.color='var(--foreground)';this.style.borderColor='var(--foreground)'" onmouseout="this.style.color='var(--muted-foreground)';this.style.borderColor='var(--border)'"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg></button><code class="language-${lang || 'text'}">${escapedCode}</code></pre>`
-  })
-
-  // Inline code
-  html = html.replace(/`([^`]+)`/g, '<code>$1</code>')
-
-  // Headings with IDs and anchor links
-  html = html.replace(/^### (.+)$/gm, (_match, text) => {
-    const id = slugify(text)
-    return `<h3 id="${id}">${text}<a href="#${id}" class="heading-anchor" aria-label="Link para esta secao">#</a></h3>`
-  })
-  html = html.replace(/^## (.+)$/gm, (_match, text) => {
-    const id = slugify(text)
-    return `<h2 id="${id}">${text}<a href="#${id}" class="heading-anchor" aria-label="Link para esta secao">#</a></h2>`
-  })
-
-  // Bold and italic
-  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-  html = html.replace(/\*(.+?)\*/g, '<em>$1</em>')
-
-  // Links
-  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
-
-  // Blockquotes
-  html = html.replace(/^> (.+)$/gm, '<blockquote><p>$1</p></blockquote>')
-
-  // Horizontal rules
-  html = html.replace(/^---$/gm, '<hr />')
-
-  // Unordered lists
-  html = html.replace(/^- (.+)$/gm, '<li>$1</li>')
-  html = html.replace(/((?:<li>.*<\/li>\n?)+)/g, '<ul>$1</ul>')
-
-  // Paragraphs
-  const lines = html.split('\n\n')
-  html = lines
-    .map((block) => {
-      const trimmed = block.trim()
-      if (!trimmed) return ''
-      if (
-        trimmed.startsWith('<h') ||
-        trimmed.startsWith('<pre') ||
-        trimmed.startsWith('<ul') ||
-        trimmed.startsWith('<ol') ||
-        trimmed.startsWith('<blockquote') ||
-        trimmed.startsWith('<hr')
-      ) {
-        return trimmed
-      }
-      if (trimmed.startsWith('<li')) return `<ul>${trimmed}</ul>`
-      return `<p>${trimmed}</p>`
-    })
-    .join('\n')
-
-  return html
-}
-
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;')
 }

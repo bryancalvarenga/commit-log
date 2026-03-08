@@ -10,6 +10,7 @@ import Link from 'next/link'
 import type { Comment } from '@/types'
 import { MessageSquare, Trash2 } from 'lucide-react'
 import { EmptyState } from '@/components/empty-state'
+import { Badge } from '@/components/ui/badge'
 
 const SHORT_MONTHS = [
   'jan', 'fev', 'mar', 'abr', 'mai', 'jun',
@@ -165,25 +166,42 @@ export function CommentSection({ comments: initialComments, postId }: CommentSec
 
         {comments.map((comment, i) => {
           const canDelete = !!user && (comment.author.id === user.id || isAdmin)
+          const isAuthorAdmin =
+            comment.author.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL
 
           return (
             <div key={comment.id}>
               <div className="flex gap-3">
-                <Avatar className="mt-1 size-8 shrink-0 border">
-                  <AvatarImage
-                    src={comment.author.image ?? undefined}
-                    alt={comment.author.name ?? 'Usuário'}
-                  />
-                  <AvatarFallback>{comment.author.name?.[0] ?? 'U'}</AvatarFallback>
-                </Avatar>
+                <Link
+                  href={`/u/${comment.author.username ?? comment.author.email?.split('@')[0] ?? 'user'}`}
+                  className="shrink-0"
+                >
+                  <Avatar className="mt-1 size-8 border transition-opacity hover:opacity-80">
+                    <AvatarImage
+                      src={comment.author.image ?? undefined}
+                      alt={comment.author.name ?? 'Usuário'}
+                    />
+                    <AvatarFallback>{comment.author.name?.[0] ?? 'U'}</AvatarFallback>
+                  </Avatar>
+                </Link>
 
                 <div className="min-w-0 flex-1">
                   <div className="rounded-lg border bg-card p-4">
                     <div className="mb-2 flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-foreground">
+                        <Link
+                          href={`/u/${comment.author.username ?? comment.author.email?.split('@')[0] ?? 'user'}`}
+                          className="text-sm font-medium text-foreground hover:underline"
+                        >
                           {comment.author.name ?? 'Usuário'}
-                        </span>
+                        </Link>
+
+                        {isAuthorAdmin && (
+                          <Badge variant="default" className="h-5 px-1.5 text-[10px]">
+                            Admin
+                          </Badge>
+                        )}
+
                         <span className="text-xs text-muted-foreground">
                           {formatShortDate(comment.createdAt)}
                         </span>

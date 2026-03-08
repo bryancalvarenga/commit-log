@@ -24,13 +24,15 @@ function mapSessionUser(sessionUser: {
 }): User | null {
   if (!sessionUser?.email) return null
 
+  const isAdmin = sessionUser.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL
+
   return {
     id: sessionUser.id ?? '',
     name: sessionUser.name ?? 'Usuário',
     username: sessionUser.email.split('@')[0],
     email: sessionUser.email,
     image: sessionUser.image ?? null,
-    role: 'user',
+    role: isAdmin ? 'admin' : 'user',
   }
 }
 
