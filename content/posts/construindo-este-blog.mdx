@@ -98,9 +98,7 @@ Com isso, o banco armazenaria:
 - possivelmente posts
 - comentários
 
-Parecia interessante.
-
-Mas havia um problema.
+Parecia interessante, mas havia um problema.
 
 ---
 
@@ -178,10 +176,12 @@ estático baseado em MDX**.
 
 A estrutura passou a ser algo assim:
 
-    content/
-      posts/
-        meu-post.mdx
-        outro-post.mdx
+```
+content/
+  posts/
+    meu-post.mdx
+    outro-post.mdx
+```
 
 Os posts são carregados diretamente do filesystem.
 
@@ -204,11 +204,7 @@ export function getAllPosts() {
 }
 ```
 
-Sem banco.
-
-Sem queries.
-
-Sem migrations.
+Sem banco, sem queries e sem migrations.
 
 ---
 
@@ -331,7 +327,7 @@ enxuta:
 - Giscus (comentários)
 - Vercel Analytics
 
-Sem backend, sem banco, sem autenticação.
+Sem backend, sem banco e sem autenticação.
 
 ---
 

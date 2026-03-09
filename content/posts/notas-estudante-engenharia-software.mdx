@@ -1,0 +1,252 @@
+---
+date: 2026-03-10
+description: Reflexões de um estudante no terceiro semestre sobre requisitos, modelagem de dados, arquitetura de software e programação orientada a objetos.
+published: true
+slug: notas-estudante-engenharia-software
+tags: [engenharia-de-software, universidade, aprendizado, devlog]
+title: Notas de um estudante de engenharia de software
+---
+
+## Notas de um estudante de engenharia de software
+
+Estou no terceiro semestre de Engenharia de Software.
+
+Ainda é cedo na graduação, mas algumas peças começam a se encaixar. No
+início parecia que cada disciplina era isolada, quase como se fossem
+assuntos completamente diferentes.
+
+Mas aos poucos fica claro que todas fazem parte de algo maior.
+
+Programação, requisitos, arquitetura, banco de dados e modelagem existem
+para resolver um único problema:
+
+> construir software que funcione e que continue funcionando com o
+> tempo.
+
+Este post é apenas um registro de algumas coisas que comecei a aprender
+até agora.
+
+---
+
+## Engenharia de requisitos
+
+Uma das primeiras coisas que aprendemos é que software não começa com
+código.
+
+Ele começa com **problemas**.
+
+Antes de qualquer implementação existe uma etapa essencial: entender **o
+que realmente precisa ser construído**.
+
+Na engenharia de requisitos trabalhamos com conceitos como:
+
+- levantamento de requisitos
+- requisitos funcionais
+- requisitos não funcionais
+- análise de stakeholders
+
+### Requisito funcional
+
+> O sistema deve permitir que o usuário crie uma tarefa.
+
+### Requisito não funcional
+
+> O sistema deve responder às ações do usuário em menos de dois
+> segundos.
+
+Também começamos a utilizar **UML**, principalmente:
+
+- diagramas de casos de uso
+- diagramas de atividades
+
+Esses diagramas ajudam a entender o comportamento do sistema antes mesmo
+de existir código.
+
+---
+
+## Modelagem de banco de dados
+
+Outra disciplina importante foi **design de banco de dados**.
+
+Antes de escrever SQL aprendemos a modelar dados de forma conceitual. O primeiro passo geralmente é criar um **modelo
+entidade-relacionamento**.
+
+Exemplo simplificado:
+
+```
+Aluno
+├ id
+├ nome
+└ email
+
+Disciplina
+├ id
+└ nome
+
+Aluno — cursa — Disciplina
+```
+
+Depois disso, esse modelo é transformado em tabelas.
+
+```sql
+CREATE TABLE alunos (
+  id INTEGER PRIMARY KEY,
+  nome TEXT,
+  email TEXT
+);
+
+CREATE TABLE disciplinas (
+  id INTEGER PRIMARY KEY,
+  nome TEXT
+);
+
+CREATE TABLE matriculas (
+  aluno_id INTEGER,
+  disciplina_id INTEGER,
+  PRIMARY KEY (aluno_id, disciplina_id)
+);
+```
+
+Isso mostra algo importante:
+
+> dados também precisam de arquitetura.
+
+---
+
+## Projeto e arquitetura de software
+
+Outra matéria que começa a conectar muitas coisas é **projeto e
+arquitetura de software**.
+
+Aqui começamos a pensar no sistema como um todo, alguns conceitos discutidos incluem:
+
+- separação de responsabilidades
+- modularização
+- camadas de software
+- organização do código
+
+Mesmo em projetos pequenos, pensar em arquitetura evita que tudo vire
+apenas um conjunto confuso de arquivos.
+
+Um exemplo simples de organização:
+
+```
+controllers/
+services/
+repositories/
+models/
+```
+
+---
+
+## Programação orientada a objetos
+
+Também estudamos **programação orientada a objetos em Java**.
+
+Os conceitos principais são:
+
+- encapsulamento
+- herança
+- polimorfismo
+- abstração
+
+Exemplo simples:
+
+```java
+public class ContaBancaria {
+
+    private double saldo;
+
+    public ContaBancaria(double saldoInicial) {
+        this.saldo = saldoInicial;
+    }
+
+    public void depositar(double valor) {
+        saldo += valor;
+    }
+
+    public void sacar(double valor) {
+        if (valor <= saldo) {
+            saldo -= valor;
+        }
+    }
+
+    public double getSaldo() {
+        return saldo;
+    }
+}
+```
+
+Uso da classe:
+
+```java
+public class Main {
+    public static void main(String[] args) {
+
+        ContaBancaria conta = new ContaBancaria(100);
+
+        conta.depositar(50);
+        conta.sacar(30);
+
+        System.out.println(conta.getSaldo());
+    }
+}
+```
+
+Mesmo sendo um exemplo simples, ele mostra como objetos podem
+representar entidades do mundo real.
+
+---
+
+## Diagramas UML
+
+Durante o semestre também trabalhamos com alguns diagramas UML.
+
+Entre eles:
+
+- diagramas de atividades
+- diagramas de classes
+
+Um fluxo simples em um diagrama de atividades poderia ser representado
+assim:
+
+```
+Início
+↓
+Usuário cria tarefa
+↓
+Sistema valida dados
+↓
+Tarefa é salva
+↓
+Fim
+```
+
+Esses diagramas ajudam a visualizar sistemas antes da implementação.
+
+---
+
+## O que começo a perceber no terceiro semestre
+
+Mesmo estando apenas no início da graduação, algumas ideias começam a
+ficar claras.
+
+Software não é apenas programação, envolve:
+
+- entender problemas
+- modelar dados
+- organizar sistemas
+- comunicar ideias
+- escrever código claro
+
+Cada disciplina parece abordar o problema de software por um ângulo
+diferente.
+
+---
+
+## Conclusão
+
+Ainda há muito a aprender, provavelmente daqui a alguns anos vou olhar para estas anotações e
+perceber o quanto ainda havia para descobrir, mas talvez essa seja a parte interessante da engenharia de software.
+
+Estamos sempre aprendendo algo novo, talvez este blog seja apenas um lugar para registrar esse processo.
