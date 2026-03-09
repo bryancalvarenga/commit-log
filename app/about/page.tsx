@@ -1,5 +1,5 @@
 import { Separator } from "@/components/ui/separator";
-import { GitCommit, Github, Linkedin } from "lucide-react";
+import { GitCommit, Github, Linkedin, Terminal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Metadata } from "next";
 
@@ -85,6 +85,17 @@ export default function AboutPage() {
         <h2 className="text-lg font-semibold text-foreground">Links</h2>
 
         <div className="flex gap-3">
+          <Button variant="outline" size="sm" className="gap-2" asChild>
+            <a
+              href="https://www.bryanalvarenga.com.br"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Terminal className="size-4" />
+              Portfólio
+            </a>
+          </Button>
+
           <Button variant="outline" size="sm" className="gap-2" asChild>
             <a
               href="https://github.com/bryancalvarenga"

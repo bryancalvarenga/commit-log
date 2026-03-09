@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { GitCommit, Github, Rss } from "lucide-react";
+import { GitCommit, Github, Rss, Terminal } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 export function Footer() {
@@ -59,16 +59,26 @@ export function Footer() {
               </h4>
               <nav className="flex flex-col gap-2 text-sm">
                 <a
+                  href="https://www.bryanalvarenga.com.br"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  <Terminal className="size-3.5" />
+                  Portfólio
+                </a>
+                <a
                   href="https://github.com/bryancalvarenga"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground"
                 >
                   <Github className="size-3.5" />
-                  GitHub
+                  Github
                 </a>
                 <a
                   href="/rss.xml"
+                  target="_blank"
                   className="flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground"
                 >
                   <Rss className="size-3.5" />
