@@ -1,10 +1,9 @@
-import { Navbar } from '@/components/navbar'
-import type { Post } from '@/types'
+import { Navbar, type NavbarPost } from "@/components/navbar";
 
 interface NavbarWrapperProps {
-  posts: Post[]
+  posts: NavbarPost[];
 }
 
 export function NavbarWrapper({ posts }: NavbarWrapperProps) {
-  return <Navbar posts={posts} />
+  return <Navbar posts={posts} />;
 }
