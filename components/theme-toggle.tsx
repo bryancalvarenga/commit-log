@@ -1,35 +1,36 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { Moon, Sun } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Moon, Sun } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light')
+  const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem('theme') as 'light' | 'dark' | null
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    const initial = stored ?? (prefersDark ? 'dark' : 'light')
-    setTheme(initial)
-    document.documentElement.classList.toggle('dark', initial === 'dark')
-  }, [])
+    setMounted(true);
+  }, []);
 
-  const toggle = () => {
-    const next = theme === 'light' ? 'dark' : 'light'
-    setTheme(next)
-    localStorage.setItem('theme', next)
-    document.documentElement.classList.toggle('dark', next === 'dark')
+  if (!mounted) {
+    return (
+      <Button variant="ghost" size="icon" aria-label="Alternar tema">
+        <Sun className="size-4" />
+      </Button>
+    );
   }
+
+  const isDark = resolvedTheme === "dark";
 
   return (
     <Button
       variant="ghost"
       size="icon"
-      onClick={toggle}
-      aria-label={theme === 'light' ? 'Ativar modo escuro' : 'Ativar modo claro'}
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+      aria-label={isDark ? "Ativar modo claro" : "Ativar modo escuro"}
     >
-      {theme === 'light' ? <Moon className="size-4" /> : <Sun className="size-4" />}
+      {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
     </Button>
-  )
+  );
 }

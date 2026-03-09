@@ -1,0 +1,340 @@
+---
+title: Construindo este blog — da complexidade à simplicidade
+description: Como este blog nasceu com Prisma, autenticação e uma comunidade interna, mas acabou se tornando um blog simples baseado em MDX e Giscus.
+date: 2026-03-09
+slug: construindo-este-blog
+tags: [nextjs, arquitetura, devlog, blog, aprendizado]
+published: true
+---
+
+## Construindo este blog
+
+Todo projeto começa com uma ideia simples.
+
+Este blog também.
+
+A intenção inicial era criar um espaço pessoal para registrar estudos,
+projetos e reflexões sobre programação, algo como um **diário técnico
+público**. Um lugar para compartilhar aprendizados e também organizar
+minhas próprias ideias.
+
+Mas como acontece com frequência em projetos de software, o escopo
+começou pequeno... e rapidamente cresceu além do necessário.
+
+Este post é um registro de como este blog foi construído, das decisões
+técnicas tomadas e de por que decidimos **remover complexidade em vez de
+adicioná-la**.
+
+---
+
+## A ideia inicial
+
+A primeira versão do projeto nasceu com um pensamento comum entre
+desenvolvedores:
+
+> "Se já vou fazer um blog... por que não fazer algo mais completo?"
+
+A ideia inicial incluía:
+
+- sistema de usuários
+- autenticação com GitHub
+- comunidade interna
+- comentários próprios
+- banco de dados
+- painel administrativo
+- posts armazenados no banco
+
+Para isso, escolhemos uma stack moderna:
+
+- Next.js
+- React
+- TypeScript
+- Prisma
+- NextAuth
+- SQLite
+- TailwindCSS
+- shadcn/ui
+
+Na teoria, parecia uma arquitetura sólida.
+
+Na prática... era complexidade demais para o objetivo do projeto.
+
+---
+
+## O uso inicial do Prisma
+
+No começo utilizamos **Prisma** para lidar com banco de dados e
+autenticação.
+
+A ideia era simples:
+
+- usuários logariam com GitHub
+- posts seriam armazenados no banco
+- comentários fariam parte da própria plataforma
+
+Um trecho simplificado da configuração de autenticação era algo assim:
+
+```ts
+import NextAuth from "next-auth";
+import GitHub from "next-auth/providers/github";
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import { prisma } from "@/lib/prisma";
+
+export const { handlers, auth } = NextAuth({
+  adapter: PrismaAdapter(prisma),
+  providers: [
+    GitHub({
+      clientId: process.env.AUTH_GITHUB_ID!,
+      clientSecret: process.env.AUTH_GITHUB_SECRET!,
+    }),
+  ],
+});
+```
+
+Com isso, o banco armazenaria:
+
+- usuários
+- sessões
+- possivelmente posts
+- comentários
+
+Parecia interessante.
+
+Mas havia um problema.
+
+---
+
+## Quando a complexidade começa a atrapalhar
+
+Depois de algum tempo trabalhando no projeto, ficou claro que estávamos
+construindo algo muito maior do que o necessário.
+
+Alguns problemas começaram a aparecer:
+
+## Infraestrutura desnecessária
+
+Para um blog pessoal, manter:
+
+- banco de dados
+- migrations
+- autenticação
+- modelos de dados
+- lógica de backend
+
+era simplesmente exagero.
+
+---
+
+## Overengineering
+
+A pergunta começou a surgir constantemente durante o desenvolvimento:
+
+> "Isso realmente precisa existir?"
+
+Grande parte das funcionalidades planejadas não eram essenciais.
+
+O objetivo principal do projeto era **escrever posts**, não construir
+uma rede social.
+
+---
+
+## Repensando a arquitetura
+
+Nesse momento tomamos uma decisão importante:
+
+**simplificar o projeto.**
+
+Ao invés de tentar construir uma plataforma completa, voltamos à
+pergunta inicial:
+
+> O que um dev blog realmente precisa?
+
+A resposta era simples:
+
+- posts
+- markdown
+- comentários
+- leitura agradável
+- deploy simples
+
+Nada mais.
+
+---
+
+## Removendo o banco de dados
+
+A primeira grande mudança foi remover completamente o banco de dados.
+
+Isso significou remover:
+
+- Prisma
+- NextAuth
+- SQLite
+- models
+- migrations
+
+O projeto deixou de ser um sistema dinâmico e passou a ser um **blog
+estático baseado em MDX**.
+
+A estrutura passou a ser algo assim:
+
+    content/
+      posts/
+        meu-post.mdx
+        outro-post.mdx
+
+Os posts são carregados diretamente do filesystem.
+
+Um exemplo simples de leitura de posts poderia ser algo assim:
+
+```ts
+import fs from "fs";
+import path from "path";
+
+export function getAllPosts() {
+  const postsDir = path.join(process.cwd(), "content/posts");
+  const files = fs.readdirSync(postsDir);
+
+  return files.map((file) => {
+    const slug = file.replace(".mdx", "");
+    const content = fs.readFileSync(path.join(postsDir, file), "utf8");
+
+    return { slug, content };
+  });
+}
+```
+
+Sem banco.
+
+Sem queries.
+
+Sem migrations.
+
+---
+
+## Comentários sem backend
+
+Ainda queríamos permitir comentários nos posts.
+
+Mas ao invés de construir um sistema inteiro para isso, escolhemos algo
+muito mais simples:
+
+**Giscus.**
+
+Giscus usa **GitHub Discussions** como backend.
+
+Isso significa que:
+
+- não precisamos de banco de dados
+- não precisamos de autenticação
+- não precisamos construir um sistema de comentários
+
+A integração é simples:
+
+```tsx
+import Giscus from "@giscus/react";
+
+<Giscus
+  repo="user/repo"
+  repoId="..."
+  category="General"
+  categoryId="..."
+  mapping="pathname"
+  reactionsEnabled="1"
+/>;
+```
+
+---
+
+## O frontend
+
+O frontend inicial do projeto foi gerado usando **v0**, a ferramenta de
+geração de interfaces da Vercel.
+
+Ela ajudou a criar rapidamente:
+
+- layout base
+- componentes
+- estrutura inicial de páginas
+
+Mas a geração inicial é apenas o começo.
+
+Depois disso foi necessário:
+
+- adaptar componentes
+- conectar o sistema de posts
+- ajustar estilos
+- refatorar partes da interface
+- integrar o renderer de markdown
+
+Grande parte desse trabalho foi feita manualmente.
+
+---
+
+## Renderizando Markdown
+
+Os posts são escritos em **MDX / Markdown**.
+
+Para renderizá-los usamos:
+
+- react-markdown
+- remark-gfm
+
+Exemplo:
+
+```tsx
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+
+<ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>;
+```
+
+---
+
+## O uso de IA no projeto
+
+Seria desonesto não mencionar que **IA foi utilizada durante o
+desenvolvimento**.
+
+Ferramentas como:
+
+- ChatGPT
+- v0
+
+foram usadas para:
+
+- gerar estruturas iniciais
+- revisar código
+- discutir arquitetura
+- acelerar refatorações
+
+Mas é importante deixar claro algo:
+
+> IA não constrói projetos sozinha.
+
+Ela funciona como uma **ferramenta de amplificação**, ajudando a
+acelerar o processo e explorar ideias.
+
+---
+
+## Stack final do projeto
+
+Depois da simplificação, o blog passou a utilizar uma stack muito mais
+enxuta:
+
+- Next.js
+- React
+- TypeScript
+- TailwindCSS
+- shadcn/ui
+- MDX
+- Giscus (comentários)
+- Vercel Analytics
+
+Sem backend, sem banco, sem autenticação.
+
+---
+
+## Conclusão
+
+Este blog não pretende ser uma plataforma complexa, ele é apenas um lugar para registrar ideias, aprendizados e projetos.

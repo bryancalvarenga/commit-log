@@ -36,6 +36,25 @@ function formatDate(dateStr: string) {
   return `${d.getUTCDate()} de ${MONTH_NAMES[d.getUTCMonth()]} de ${d.getUTCFullYear()}`;
 }
 
+function normalizeTags(tags: string[] | string | undefined): string[] {
+  if (!tags) return [];
+
+  if (Array.isArray(tags)) {
+    return tags.filter(
+      (tag) => typeof tag === "string" && tag.trim().length > 0,
+    );
+  }
+
+  if (typeof tags === "string") {
+    return tags
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter(Boolean);
+  }
+
+  return [];
+}
+
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
@@ -46,6 +65,8 @@ export async function generateMetadata({
     return { title: "Post not found" };
   }
 
+  const postTags = normalizeTags(post.tags);
+
   return {
     title: post.title,
     description: post.description || post.excerpt,
@@ -54,7 +75,7 @@ export async function generateMetadata({
       description: post.description || post.excerpt,
       type: "article",
       publishedTime: post.date,
-      tags: post.tags,
+      tags: postTags,
     },
   };
 }
@@ -71,7 +92,9 @@ export default async function PostPage({ params }: PageProps) {
     notFound();
   }
 
+  const postTags = normalizeTags(post.tags);
   const allPosts = getAllPosts();
+
   const postIndex = allPosts.findIndex((p) => p.slug === slug);
 
   const previousPost =
@@ -80,10 +103,12 @@ export default async function PostPage({ params }: PageProps) {
   const nextPost = postIndex > 0 ? allPosts[postIndex - 1] : null;
 
   const relatedPosts = allPosts
-    .filter(
-      (p) =>
-        p.slug !== post.slug && p.tags.some((tag) => post.tags.includes(tag)),
-    )
+    .filter((p) => {
+      if (p.slug === post.slug) return false;
+
+      const relatedTags = normalizeTags(p.tags);
+      return relatedTags.some((tag) => postTags.includes(tag));
+    })
     .slice(0, 4);
 
   const tocItems = extractTocItems(post.content);
@@ -97,7 +122,7 @@ export default async function PostPage({ params }: PageProps) {
           <article className="min-w-0 flex-1">
             <header className="mb-10">
               <div className="mb-4 flex flex-wrap gap-1.5">
-                {post.tags.map((tag) => (
+                {postTags.map((tag) => (
                   <Link key={tag} href="/posts">
                     <Badge
                       variant="secondary"
@@ -199,33 +224,37 @@ export default async function PostPage({ params }: PageProps) {
                   </h3>
 
                   <div className="grid gap-3 sm:grid-cols-2">
-                    {relatedPosts.map((relatedPost, index) => (
-                      <Link
-                        key={`${relatedPost.slug}-${index}`}
-                        href={`/posts/${relatedPost.slug}`}
-                        className="group rounded-lg border bg-card p-4 transition-colors hover:border-ring/40 hover:bg-secondary/50"
-                      >
-                        <h4 className="mb-1.5 text-balance text-sm font-medium leading-snug text-foreground transition-colors group-hover:text-accent-foreground">
-                          {relatedPost.title}
-                        </h4>
+                    {relatedPosts.map((relatedPost, index) => {
+                      const relatedTags = normalizeTags(relatedPost.tags);
 
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <Clock className="size-3" />
-                          <span>{relatedPost.readingTime} min</span>
-                          <span className="text-border">|</span>
+                      return (
+                        <Link
+                          key={`${relatedPost.slug}-${index}`}
+                          href={`/posts/${relatedPost.slug}`}
+                          className="group rounded-lg border bg-card p-4 transition-colors hover:border-ring/40 hover:bg-secondary/50"
+                        >
+                          <h4 className="mb-1.5 text-balance text-sm font-medium leading-snug text-foreground transition-colors group-hover:text-accent-foreground">
+                            {relatedPost.title}
+                          </h4>
 
-                          {relatedPost.tags.slice(0, 2).map((tag) => (
-                            <Badge
-                              key={tag}
-                              variant="secondary"
-                              className="px-1.5 py-0 text-[10px]"
-                            >
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                      </Link>
-                    ))}
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <Clock className="size-3" />
+                            <span>{relatedPost.readingTime} min</span>
+                            <span className="text-border">|</span>
+
+                            {relatedTags.slice(0, 2).map((tag) => (
+                              <Badge
+                                key={tag}
+                                variant="secondary"
+                                className="px-1.5 py-0 text-[10px]"
+                              >
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
+                        </Link>
+                      );
+                    })}
                   </div>
                 </section>
               </>

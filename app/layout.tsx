@@ -4,6 +4,7 @@ import { JetBrains_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { NavbarWrapper } from "@/components/navbar-wrapper";
 import { Footer } from "@/components/footer";
+import { ThemeProvider } from "@/components/theme-provider";
 import { BackToTop } from "@/components/back-to-top";
 import { getAllPosts } from "@/lib/content/posts";
 import "./globals.css";
@@ -16,11 +17,11 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "commit.log - Developer Blog",
-    template: "%s | commit.log",
+    default: "commitlog - Developer Blog",
+    template: "%s | commitlog",
   },
   description:
-    "A personal developer blog focused on web development, TypeScript, React, and modern software engineering.",
+    "O commitlog.com.br é um blog pessoal onde registro minha jornada aprendendo e explorando desenvolvimento de software.",
 };
 
 export const viewport: Viewport = {
@@ -50,12 +51,14 @@ export default function RootLayout({
       <body
         className={`${inter.className} ${jetbrainsMono.variable} antialiased`}
       >
-        <div className="flex min-h-screen flex-col">
-          <NavbarWrapper posts={posts} />
-          <main className="flex-1">{children}</main>
-          <Footer />
-        </div>
-        <BackToTop />
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <div className="flex min-h-screen flex-col">
+            <NavbarWrapper posts={posts} />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </div>
+          <BackToTop />
+        </ThemeProvider>
         <Analytics />
       </body>
     </html>

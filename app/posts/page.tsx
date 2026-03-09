@@ -4,7 +4,7 @@ import { PostsArchive } from "@/components/posts-archive";
 
 export const metadata: Metadata = {
   title: "Posts",
-  description: "Arquivo completo de posts do blog commit.log.",
+  description: "Arquivo completo de posts do blog commitlog.",
 };
 
 export default function PostsPage() {

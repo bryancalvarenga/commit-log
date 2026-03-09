@@ -32,7 +32,7 @@ export function MobileDrawer({ open, onOpenChange }: MobileDrawerProps) {
         <SheetHeader className="border-b px-4 py-4">
           <SheetTitle className="flex items-center gap-2">
             <GitCommit className="size-5" />
-            <span className="font-mono text-sm">commit.log</span>
+            <span className="font-mono text-sm">commitlog</span>
           </SheetTitle>
         </SheetHeader>
 

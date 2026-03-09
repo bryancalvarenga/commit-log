@@ -19,24 +19,22 @@ export default function HomePage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
-      {/* Hero */}
       <section className="mb-12">
         <div className="mb-2 flex items-center gap-2 text-muted-foreground">
           <GitCommit className="size-5" />
-          <span className="font-mono text-sm">v1.0.0</span>
+          <span className="font-mono text-sm">commitlog</span>
         </div>
 
-        <h1 className="mb-3 text-2xl font-bold tracking-tight text-foreground sm:text-3xl text-balance">
-          Notas sobre desenvolvimento web, TypeScript e engenharia de software.
+        <h1 className="mb-3 text-2xl font-bold tracking-tight text-foreground text-balance sm:text-3xl">
+          Um registro de estudos, ideias e aprendizados sobre software.
         </h1>
 
-        <p className="max-w-lg text-muted-foreground leading-relaxed">
-          Artigos, tutoriais e exploracoes sobre as ferramentas e padroes do
-          ecossistema moderno. Cada post e um commit no log.
+        <p className="max-w-2xl leading-relaxed text-muted-foreground">
+          Este é meu espaço para documentar a jornada em programação —
+          especialmente em desenvolvimento web.
         </p>
       </section>
 
-      {/* Recent posts */}
       <section>
         <div className="mb-6 flex items-baseline justify-between">
           <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">

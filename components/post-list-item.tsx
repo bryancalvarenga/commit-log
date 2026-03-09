@@ -9,7 +9,7 @@ type ListPost = {
   excerpt: string;
   publishedAt: string;
   readingTime: number;
-  tags: string[];
+  tags: string[] | string | undefined;
 };
 
 const SHORT_MONTHS = [
@@ -32,11 +32,28 @@ function formatShortDate(dateStr: string) {
   return `${d.getUTCDate()} ${SHORT_MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 }
 
+function normalizeTags(tags: string[] | string | undefined): string[] {
+  if (!tags) return [];
+
+  if (Array.isArray(tags)) return tags;
+
+  if (typeof tags === "string") {
+    return tags
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter(Boolean);
+  }
+
+  return [];
+}
+
 interface PostListItemProps {
   post: ListPost;
 }
 
 export function PostListItem({ post }: PostListItemProps) {
+  const tags = normalizeTags(post.tags);
+
   return (
     <article className="group relative">
       <Link
@@ -66,7 +83,7 @@ export function PostListItem({ post }: PostListItemProps) {
             </div>
 
             <div className="ml-auto flex flex-wrap gap-1.5">
-              {post.tags.slice(0, 3).map((tag) => (
+              {tags.slice(0, 3).map((tag) => (
                 <Badge
                   key={tag}
                   variant="secondary"

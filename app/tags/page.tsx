@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Tags",
-  description: "Todas as tags do blog commit.log.",
+  description: "Todas as tags do blog commitlog.",
 };
 
 export default function TagsPage() {

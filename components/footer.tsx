@@ -1,9 +1,9 @@
-import Link from 'next/link'
-import { GitCommit, Github, Rss } from 'lucide-react'
-import { ThemeToggle } from '@/components/theme-toggle'
+import Link from "next/link";
+import { GitCommit, Github, Rss } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function Footer() {
-  const year = new Date().getFullYear()
+  const year = new Date().getFullYear();
 
   return (
     <footer className="border-t bg-secondary/20">
@@ -13,10 +13,12 @@ export function Footer() {
           <div className="space-y-3">
             <Link href="/" className="flex items-center gap-2 text-foreground">
               <GitCommit className="size-5" />
-              <span className="font-mono text-sm font-semibold tracking-tight">commit.log</span>
+              <span className="font-mono text-sm font-semibold tracking-tight">
+                commitlog
+              </span>
             </Link>
             <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
-              Blog pessoal sobre desenvolvimento web, TypeScript, React e engenharia de software.
+              Um registro de estudos, ideias e aprendizados sobre software.
             </p>
           </div>
 
@@ -26,10 +28,28 @@ export function Footer() {
               <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Navegacao
               </h4>
-              <nav className="flex flex-col gap-2 text-sm" aria-label="Footer navigation">
-                <Link href="/posts" className="text-muted-foreground transition-colors hover:text-foreground">Posts</Link>
-                <Link href="/tags" className="text-muted-foreground transition-colors hover:text-foreground">Tags</Link>
-                <Link href="/about" className="text-muted-foreground transition-colors hover:text-foreground">Sobre</Link>
+              <nav
+                className="flex flex-col gap-2 text-sm"
+                aria-label="Footer navigation"
+              >
+                <Link
+                  href="/posts"
+                  className="text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Posts
+                </Link>
+                <Link
+                  href="/tags"
+                  className="text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Tags
+                </Link>
+                <Link
+                  href="/about"
+                  className="text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Sobre
+                </Link>
               </nav>
             </div>
 
@@ -38,11 +58,19 @@ export function Footer() {
                 Links
               </h4>
               <nav className="flex flex-col gap-2 text-sm">
-                <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground">
+                <a
+                  href="https://github.com/bryancalvarenga"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground"
+                >
                   <Github className="size-3.5" />
                   GitHub
                 </a>
-                <a href="/rss.xml" className="flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground">
+                <a
+                  href="/rss.xml"
+                  className="flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground"
+                >
                   <Rss className="size-3.5" />
                   RSS Feed
                 </a>
@@ -58,10 +86,10 @@ export function Footer() {
 
         <div className="mt-8 border-t pt-6">
           <p className="text-xs text-muted-foreground">
-            {`\u00A9 ${year} commit.log. Built with Next.js & Tailwind CSS.`}
+            {`\u00A9 ${year} commitlog. Built with Next.js & Tailwind CSS.`}
           </p>
         </div>
       </div>
     </footer>
-  )
+  );
 }

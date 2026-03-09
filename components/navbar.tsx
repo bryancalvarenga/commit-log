@@ -42,7 +42,7 @@ export function Navbar({ posts = [] }: NavbarProps) {
           className="mr-6 flex items-center gap-2 font-semibold text-foreground transition-opacity hover:opacity-80"
         >
           <GitCommit className="size-5" />
-          <span className="font-mono text-sm tracking-tight">commit.log</span>
+          <span className="font-mono text-sm tracking-tight">commitlog</span>
         </Link>
 
         <nav
