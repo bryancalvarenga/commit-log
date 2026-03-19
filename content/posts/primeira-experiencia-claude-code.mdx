@@ -1,0 +1,185 @@
+---
+date: 2026-03-19
+description: Primeiras impressões utilizando um agente de código que interage com o ambiente local e como estruturar um projeto pensando em colaboração com IA.
+published: true
+slug: primeira-experiencia-claude-code
+tags: [ai, devlog, arquitetura, produtividade, engenharia-de-software]
+title: Primeira experiência com um agente de código
+---
+
+## Um agente mexendo no meu computador
+
+Essa foi a primeira vez que usei uma ferramenta que não só sugere código,  
+mas **age diretamente no projeto por mim**.
+
+Ainda não sei qual é a melhor forma de usar isso.
+
+Mas rapidamente ficou claro que não é só sobre pedir coisas —  
+é sobre **como você prepara o ambiente para ela trabalhar**.
+
+---
+
+## O projeto
+
+Estou usando isso em um projeto real:
+
+[Entrelinhas (GitHub)](https://github.com/bryancalvarenga/entrelinhas)
+
+A ideia não é testar em algo isolado,  
+mas entender como esse tipo de ferramenta se comporta em um sistema de verdade.
+
+---
+
+## Minha primeira decisão: contexto
+
+Sem saber muito bem por onde começar, fui no instinto:
+
+> Se a IA depende de contexto, então eu preciso maximizar esse contexto.
+
+Escolhi usar um **monorepo**.
+
+Mais do que organização, foi uma forma de:
+
+- manter tudo próximo
+- evitar perda de contexto
+- facilitar o entendimento global do sistema pela IA
+
+---
+
+## Documentação como interface para a IA
+
+Criei uma pasta na raiz:
+
+```text
+docs/
+```
+
+Mas o objetivo aqui não era documentação tradicional.
+
+Era criar uma espécie de **camada de entendimento para a IA**.
+
+### Estrutura
+
+- `context.md` visão geral do produto
+- `api-reference.md` contratos da API
+- `architecture.md` decisões arquiteturais
+- `rules.md` regras que o agente deve seguir ao escrever código
+- `future-roadmap.md` funcionalidades futuras
+
+---
+
+## Separando responsabilidades
+
+Eu não usei o agente para tudo.
+
+O frontend eu gerei usando o v0 e coloquei em:
+
+```text
+apps/web
+```
+
+E deixei o agente responsável apenas pelo backend:
+
+```text
+apps/api
+```
+
+Isso evitou decisões inconsistentes na UI e deixou o fluxo mais previsível.
+
+---
+
+## Como estou usando o agente
+
+Ao invés de prompts vagos, comecei a usar instruções mais restritas.
+
+Exemplo:
+
+```txt
+Implemente as funcionalidades descritas no documento
+docs/future-roadmap.md com foco em consistência com a
+arquitetura atual (NestJS + Prisma + Next.js App Router).
+
+Regras importantes:
+- Não quebrar funcionalidades existentes
+- Manter o estilo atual do código
+- Reutilizar services, DTOs e patterns já existentes
+- Toda regra de negócio deve ser validada no backend
+- Frontend deve apenas refletir estados do backend
+```
+
+Isso melhorou bastante a consistência do que foi gerado.
+
+---
+
+## Exemplo de feature
+
+Sistema de mensagens com limite por ciclo:
+
+- usuário pode enviar até 3 mensagens seguidas
+- depois precisa aguardar resposta
+- após ambos interagirem, cooldown de 3 horas
+
+---
+
+## Backend
+
+- controla estado da conversa
+- valida regras
+- retorna erros claros
+
+---
+
+## Frontend
+
+- apenas reflete estado
+- desabilita ações
+- comunica o usuário de forma simples
+
+---
+
+## Notificações
+
+- evento `new_message`
+- marcação como lida
+- indicadores visuais
+- respeito às preferências do usuário
+
+---
+
+## Infraestrutura
+
+Tudo rodando em plano gratuito:
+
+- Frontend: Vercel
+- Backend: Render
+- Banco de dados: Neon
+
+Nada aqui foi pensado para escala.
+
+A ideia é simples:
+
+> **build to learn**
+
+Colocar o sistema de pé, testar ideias, entender decisões na prática  
+e aprender com os erros enquanto o custo ainda é zero.
+
+Depois disso — se fizer sentido — aí sim penso em evoluir.
+
+---
+
+## O que ficou claro até agora
+
+- contexto bem estruturado muda completamente o resultado
+- regras explícitas ajudam mais do que prompts “inteligentes”
+- IA não resolve arquitetura ruim
+- separar responsabilidades continua sendo essencial
+
+---
+
+## Conclusão
+
+Ainda estou aprendendo a usar esse tipo de ferramenta, mas uma coisa já ficou evidente:
+
+> Quem souber estruturar contexto vai extrair muito mais da IA.
+
+No fim, não é sobre deixar a IA fazer tudo, é sobre saber direcionar.
