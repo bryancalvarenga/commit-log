@@ -1,0 +1,209 @@
+---
+date: 2026-03-24
+description: Depois da primeira experiência com Claude Code, comecei a procurar formas de melhorar seu desempenho e encontrei um ecossistema de repositórios que expandem contexto, controle e especialização.
+published: true
+slug: explorando-ecossistema-claude-code
+tags: [ai, devlog, produtividade, arquitetura, ferramentas]
+title: Explorando o ecossistema ao redor do Claude Code
+---
+
+## Depois do primeiro post
+
+No meu último post, escrevi sobre a primeira vez usando o Claude Code
+em um projeto real.
+
+A experiência, no geral, foi muito boa.
+
+A sensação de ter um agente interagindo diretamente com o projeto,
+lendo contexto, modificando arquivos e ajudando a construir funcionalidades
+foi algo que realmente me chamou atenção.
+
+Mas, ao mesmo tempo, algumas limitações ficaram claras logo no começo.
+
+---
+
+## Eu gostei, mas percebi falhas
+
+Uma das primeiras decisões que tomei foi usar um **monorepo**.
+
+A ideia era simples:
+se a IA depende de contexto, então eu precisava aproximar ao máximo
+as partes do sistema.
+
+Frontend, backend, documentação e regras no mesmo lugar.
+
+Isso ajudou.
+
+Mas não resolveu tudo.
+
+Mesmo com o monorepo, ainda percebi falhas de contexto,
+algumas respostas inconsistentes e momentos em que o agente
+não parecia operar com toda a clareza que eu esperava.
+
+Não era necessariamente um problema “do modelo”.
+Muitas vezes parecia mais uma limitação da forma como o ambiente estava preparado.
+
+Foi aí que comecei a olhar para a ferramenta de outro jeito.
+
+> Talvez não bastasse usar o Claude Code.
+> Talvez fosse preciso melhorar o ecossistema em volta dele.
+
+---
+
+## Procurando formas de melhorar o Claude
+
+Depois disso, comecei a pesquisar como outras pessoas estavam
+usando Claude Code de forma mais avançada.
+
+Não só com prompts.
+
+Mas com estruturas auxiliares, agentes especializados,
+automação e formas melhores de organizar contexto.
+
+Foi aí que encontrei alguns repositórios interessantes.
+
+O que me chamou atenção neles é que nenhum tenta resolver tudo sozinho. Cada um ataca uma parte diferente do problema.
+
+---
+
+## 1. Awesome Claude Code
+
+O primeiro que me chamou atenção foi o
+`hesreallyhim/awesome-claude-code`.
+
+Ele funciona como uma grande curadoria do ecossistema:
+skills, agentes, plugins, hooks, slash commands e outras ferramentas
+voltadas para melhorar o workflow com Claude Code.
+
+O valor dele, para mim, não está em “instalar tudo”.
+
+Está em mostrar que existe uma camada muito maior ao redor da ferramenta.
+
+Depois da primeira experiência, esse tipo de repositório ajuda a perceber
+que produtividade com IA não vem só de um bom prompt,
+mas também de descobrir padrões que outras pessoas já estão usando.
+
+---
+
+## 2. Awesome Claude Code Subagents
+
+Outro repositório que achei muito interessante foi o
+`VoltAgent/awesome-claude-code-subagents`.
+
+A proposta dele é reunir mais de 100 subagents especializados
+para diferentes tipos de tarefa e cenários de desenvolvimento.
+
+Essa ideia me chamou atenção porque conversa diretamente com uma limitação
+que senti usando o Claude de forma mais geral.
+
+Às vezes, um único agente acaba tentando fazer coisas demais:
+arquitetura, debugging, frontend, backend, documentação,
+refatoração, revisão.
+
+Separar responsabilidades continua sendo uma boa ideia,
+mesmo quando quem executa é uma IA.
+
+No fundo, subagents parecem levar para o mundo dos agentes
+uma lógica que já faz sentido em engenharia de software:
+**especialização melhora previsibilidade**.
+
+---
+
+## 3. Claude Code Hooks Mastery
+
+Também encontrei o
+`disler/claude-code-hooks-mastery`.
+
+Esse repositório é focado em hooks do Claude Code
+e em formas de adicionar mais controle sobre o comportamento do agente.
+Além dos hooks em si, ele também aborda subagents,
+meta-agent e validação em equipe com orquestração de agentes.
+
+Esse foi um dos pontos que mais me interessaram.
+
+Porque uma das sensações que tive no começo
+foi que, em alguns momentos, o agente funcionava bem,
+mas faltava mais determinismo no processo.
+
+Mais checkpoints.
+Mais controle.
+Mais previsibilidade.
+
+Hooks parecem interessantes justamente por isso:
+eles transformam parte da interação com o agente
+em algo menos improvisado.
+
+E eu acho isso valioso.
+
+---
+
+## 4. Awesome MCP Servers
+
+Outro repositório importante nessa exploração foi o
+`punkpeye/awesome-mcp-servers`.
+
+Ele reúne servidores MCP prontos e experimentais,
+voltados para ampliar as capacidades da IA com acesso a arquivos,
+bancos de dados, APIs e outros serviços contextuais.
+O próprio README resume MCP como um protocolo aberto
+para permitir que modelos interajam de forma padronizada
+com recursos locais e remotos.
+
+Esse ponto me interessa porque toca exatamente no problema do contexto.
+
+No meu primeiro post, eu falei sobre documentação,
+monorepo e estrutura como formas de ajudar a IA a entender o sistema.
+
+MCP parece expandir isso.
+
+Em vez de depender apenas do que está solto no prompt
+ou do que o agente consegue inferir do repositório,
+passa a existir uma camada mais explícita de integração com contexto.
+
+E talvez esse seja um dos caminhos mais promissores.
+
+---
+
+## O que esses repositórios têm em comum
+
+O que achei interessante explorando esses projetos
+é que eles não tratam Claude Code como uma ferramenta isolada.
+
+Eles tratam Claude Code como parte de um sistema maior.
+
+Um sistema com:
+
+- contexto
+- especialização
+- automação
+- integração
+- controle
+
+Isso me fez pensar que talvez o erro seja esperar demais
+de um agente “cru”,
+sem preparar o ambiente em volta dele.
+
+No primeiro post, eu percebi que contexto importava. Agora, a sensação é que isso vai além.
+
+Não é só contexto de código. É contexto de operação.
+
+---
+
+## Conclusão
+
+Minha primeira experiência com Claude Code foi positiva.
+
+Mas ela também deixou claro que, mesmo com monorepo,
+ainda existem limites reais na forma como o agente entende,
+decide e executa.
+
+Explorar esses repositórios me fez perceber que existe
+todo um ecossistema tentando melhorar justamente isso.
+
+Alguns organizam conhecimento, outros especializam agentes, outros adicionam controle, outros expandem o acesso a contexto.
+
+No fim, talvez usar bem esse tipo de ferramenta
+não seja apenas saber pedir.
+
+Talvez seja saber montar o ambiente certo
+para que ela consiga colaborar melhor com você.
